@@ -1,0 +1,63 @@
+Ejercicio 6
+    Enumere las diferencias de declarar las variables y utilizarlas de las siguientes formas.
+    Para hacerlo, armo el código en c y lo paso a asm para ver exactamente qué hace.
+
+(a)
+int foo(){
+    int numero;
+}
+Respuesta: No hace nada. En el código asm se arma el stack frame, se usa nop (no operation), se
+desarma el stack frame y se retorna, nada más. No se reserva lugar ni se guarda nada.
+
+(b)
+int foo(){
+    int numero = 21;
+}
+Respuesta: En este caso, se pushe el 21 al stack en la posición encima del ebp.
+
+(c)
+int numero;
+int foo(){
+    numero = 21;
+}
+Respuesta: Se reserva en memoria un espacio, y luego dentro de la función se guarda 21 allí
+con las siguientes lineas:
+mov	eax, DWORD PTR numero@GOT[eax]
+mov	DWORD PTR [eax], 21
+Donde en eax se guarda primero la dirección de memoria y luego se le asigna 21.
+
+(d)
+int foo(){
+    static int numero = 21;
+}
+Respuesta: Si bien no se realiza nada en la función, el 21 se guarda:
+numero.1504:
+	.long	21
+
+(e)
+extern int numero;
+int foo(){
+    numero = 10;
+}
+Respuesta: Dentro de la función, se recibe la dirección de memoria como en
+(c), y se guarda el valor 10 allí.
+
+(f)
+int numero = 21;
+int bar(){
+    numero = 30;
+}
+Respuesta: Dentro de la función, lo único que se hace es guardar el 30 en
+la dirección de memoria de numero. Vemos que se recibe:
+	.globl	numero
+Y luego:
+numero:
+	.long	21
+
+(g)
+static int numero = 10;
+int foo(){
+    numero = 20;
+}
+Respuesta: Sucede algo parecido al caso anterior, pero sin:
+	.globl	numero
